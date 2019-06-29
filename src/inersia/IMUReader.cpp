@@ -12,15 +12,15 @@ namespace inersia {
     bool IMUReader::Update(void* imu) {
         // get sensor value
         IMU* tmp = ((IMU*)imu);
-        tmp->getAccelData(&sensorRawAcc[0], &sensorRawAcc[1], &sensorRawAcc[2]);
-        tmp->getGyroData(&sensorRawGyro[0], &sensorRawGyro[1], &sensorRawGyro[2]);
         // acc
+        tmp->getAccelData(&sensorRawAcc[0], &sensorRawAcc[1], &sensorRawAcc[2]);
         for (int i = 0; i < 3; i++) {
             sensorAcc[i] = sensorRawAcc[i] * tmp->aRes;
         }
         // gyro
+        tmp->getGyroData(&sensorRawGyro[0], &sensorRawGyro[1], &sensorRawGyro[2]);
         for (int i = 0; i < 3; i++) {
-            sensorGyro[i] = sensorRawGyro[i] * tmp->aRes;
+            sensorGyro[i] = sensorRawGyro[i] * tmp->gRes;
         }
         return true;
     }
