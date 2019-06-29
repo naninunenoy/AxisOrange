@@ -1,12 +1,15 @@
 #include <M5StickC.h>
-#include "imu/IMUReader.h"
+#include "inersia/IMUReader.h"
 
-imu::IMUReader* imuReader;
+inersia::IMUReader imuReader;
 
 void setup() {
   M5.begin();
-  imuReader = new imu::IMUReader(M5.Imu);
   M5.Lcd.fillScreen(BLACK);
+
+  // IMU setup
+  imuReader.SetUp((void*)&M5.Imu);
+
   // text print
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 10);
@@ -17,5 +20,7 @@ void setup() {
 }
 
 void loop(){
-
+  // IMU update
+  imuReader.Update((void*)&M5.Imu);
+  
 }

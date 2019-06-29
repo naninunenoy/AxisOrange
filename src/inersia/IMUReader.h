@@ -3,23 +3,23 @@
 
 #include <IMU.h>
 
-namespace imu {
+namespace inersia {
 class IMUReader {
 public:
-    explicit IMUReader(IMU& imu);
+    explicit IMUReader();
     ~IMUReader();
-    bool SetUp();
-    bool Update();
+    // i cannnot use arg IMU*/IMU& because of compile error
+    bool SetUp(void* imu);
+    bool Update(void* imu);
     const float* getAccXYZ() const { return sensorAcc; }
     const float* getGyroRPY() const { return sensorGyro; };
 private:
-    IMU& imu;
     float sensorAcc[3];
     float sensorGyro[3];
     int16_t sensorRawAcc[3];
     int16_t sensorRawGyro[3];
 }; // IMUReader
 
-} // imu
+} // inersia
 
 #endif // __IMU_IMUREADER_H
