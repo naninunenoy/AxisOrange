@@ -1,35 +1,25 @@
 #include <M5StickC.h>
-#include "inersia/IMUReader.h"
 
-inersia::IMUReader imuReader;
-  
+int16_t accX = 0;
+int16_t accY = 0;
+int16_t accZ = 0;
+
+int16_t gyroX = 0;
+int16_t gyroY = 0;
+int16_t gyroZ = 0;
+
 void setup() {
-  // put your setup code here, to run once:
   M5.begin();
-  // M5.IMU.Init();
-  imuReader.SetUp((void*)&(M5.Imu));
-  M5.Lcd.setRotation(3);
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextSize(1);
-  M5.Lcd.setCursor(40, 0);
-  M5.Lcd.println("SH200I TEST");
-  M5.Lcd.setCursor(0, 15);
-  M5.Lcd.println("  X       Y       Z");
+  M5.IMU.Init();
+  Serial.begin(115200);
 }
-  
-void loop() {
-  imuReader.Update((void*)&(M5.Imu));
-  float accX = imuReader.getAccXYZ()[0];
-  float accY = imuReader.getAccXYZ()[1];
-  float accZ = imuReader.getAccXYZ()[2];
-  float gyroX = imuReader.getGyroRPY()[0];
-  float gyroY = imuReader.getGyroRPY()[1];
-  float gyroZ = imuReader.getGyroRPY()[2];
- 
-  M5.Lcd.setCursor(0, 24);
-  M5.Lcd.printf("%+7.2f %+7.2f %+7.2f\n", accX, accY, accZ);
-  M5.Lcd.setCursor(0, 36);
-  M5.Lcd.printf("%+7.2f %+7.2f %+7.2f\n", gyroX, gyroY, gyroZ);
 
-  M5.update();
+void loop() {
+  M5.IMU.getGyroData(&gyroX,&gyroY,&gyroZ);
+  M5.IMU.getAccelData(&accX,&accY,&accZ);
+  
+  Serial.printf("g= ( 0x%04X 0x%04X 0x%04X ), a= ( 0x%04X 0x%04X 0x%04X )\n", 
+    ((uint16_t) gyroX), ((uint16_t) gyroY), ((uint16_t) gyroZ),
+    ((uint16_t) accX), ((uint16_t) accY), ((uint16_t) accZ));
+  delay(1000);
 }
