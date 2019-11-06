@@ -46,7 +46,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   M5.IMU.getGyroData(&gyroX,&gyroY,&gyroZ);
   M5.IMU.getAccelData(&accX,&accY,&accZ);
-
+  
   ahrs.UpdateQuaternion(
     gyroX * DEG_TO_RAD, gyroY * DEG_TO_RAD, gyroZ * DEG_TO_RAD, 
     accX, accY, accZ,
