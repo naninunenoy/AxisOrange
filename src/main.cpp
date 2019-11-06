@@ -9,6 +9,10 @@ float gyroX = 0.0F;
 float gyroY = 0.0F;
 float gyroZ = 0.0F;
 
+const float offsetGyroX = -1.76546F;
+const float offsetGyroY = -6.8906F;
+const float offsetGyroZ = 14.59196F;
+
 float quatW = 1.0F;
 float quatX = 0.0F;
 float quatY = 0.0F;
@@ -33,6 +37,8 @@ void setup() {
   M5.Lcd.println("  X       Y       Z");
   M5.Lcd.setCursor(0, 50);
   M5.Lcd.println("  Pitch   Roll    Yaw");
+
+  Serial.begin(115200);
 }
 
 float temp = 0;
@@ -47,6 +53,13 @@ void loop() {
   M5.IMU.getGyroData(&gyroX,&gyroY,&gyroZ);
   M5.IMU.getAccelData(&accX,&accY,&accZ);
   
+  // offset
+  gyroX -= offsetGyroX;
+  gyroY -= offsetGyroY;
+  gyroZ -= offsetGyroZ;
+
+  Serial.printf("%f, %f, %f\n", gyroX, gyroY, gyroZ);
+
   ahrs.UpdateQuaternion(
     gyroX * DEG_TO_RAD, gyroY * DEG_TO_RAD, gyroZ * DEG_TO_RAD, 
     accX, accY, accZ,
