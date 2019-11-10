@@ -20,6 +20,7 @@
 #define twoKpDef	(2.0f * 1.0f)	// 2 * proportional gain
 #define twoKiDef	(2.0f * 0.0f)	// 2 * integral gain
 
+namespace imuReader {
 namespace mahony {
 
 volatile float twoKp = twoKpDef;											// 2 * proportional gain (Kp)
@@ -123,4 +124,5 @@ float invSqrt(float x) {
 	return y;
 }
 
-}
+} // imuReader
+} // mahony

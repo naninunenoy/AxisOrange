@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-namespace ImuReader {
+namespace imuReader {
 
 static const int ImuXyz = 3;
 static const int ImuWxyz = 4;
@@ -22,6 +22,6 @@ public:
     }
 };
 
-}
+} // imuReader
 
 #endif // __IMU_READER_IMU_DATA_H__

@@ -22,7 +22,7 @@ float pitch = 0.0F;
 float roll  = 0.0F;
 float yaw   = 0.0F;
 
-mahony::MahonyAHRS ahrs;
+imuReader::mahony::MahonyAHRS ahrs;
 
 void setup() {
   // put your setup code here, to run once:
