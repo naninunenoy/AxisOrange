@@ -38,7 +38,7 @@ void setup() {
   M5.Lcd.setCursor(0, 50);
   M5.Lcd.println("  Quaternion(WXYZ)");
   // bluetooth serial
-  btSpp.begin("OrangeAxis");
+  btSpp.begin("AxisOrange");
   // task
   imuDataMutex = xSemaphoreCreateMutex();
   xTaskCreatePinnedToCore(ImuLoop, TASK_NAME_IMU, TASK_STACK_DEPTH, NULL, 2, NULL, TASK_DEFAULT_CORE_ID);
