@@ -12,7 +12,7 @@
 static void ImuLoop(void* arg);
 static void SessionLoop(void* arg);
 
-imu::ImuReader imuReader;
+imu::ImuReader* imuReader;
 imu::ImuData imuData;
 const float offsetGyroX = -1.76546F;
 const float offsetGyroY = -6.8906F;
@@ -23,8 +23,9 @@ void setup() {
   // put your setup code here, to run once:
   M5.begin();
   // imu
-  imuReader.initialize();
-  imuReader.writeGyroOffset(offsetGyroX, offsetGyroY, offsetGyroZ);
+  imuReader = new imu::ImuReader(M5.Imu);
+  imuReader->initialize();
+  imuReader->writeGyroOffset(offsetGyroX, offsetGyroY, offsetGyroZ);
   // lcd
   M5.Lcd.setRotation(3);
   M5.Lcd.fillScreen(BLACK);
@@ -50,8 +51,8 @@ static void ImuLoop(void* arg) {
     uint32_t entryTime = millis();
     xSemaphoreGive(imuDataMutex);
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-        imuReader.update();
-        imuReader.read(imuData);
+        imuReader->update();
+        imuReader->read(imuData);
       }
       xSemaphoreGive(imuDataMutex);
     // idle

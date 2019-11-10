@@ -1,13 +1,12 @@
-#include <M5StickC.h>
 #include "ImuReader.h"
 
 namespace imu {
-    ImuReader::ImuReader() : ahrs(), imuData() {
+    ImuReader::ImuReader(IMU& m5) : m5Imu(m5), ahrs(), imuData() {
         memset(gyroOffsets, 0, sizeof(float) * ImuXyz);
     }
 
     bool ImuReader::initialize() {
-        return (M5.IMU.Init() == 0);
+        return (m5Imu.Init() == 0);
     }
 
     bool ImuReader::writeGyroOffset(float x, float y, float z) {
@@ -29,8 +28,8 @@ namespace imu {
         float& qy = imuData.quat[2];
         float& qz = imuData.quat[3];
         
-        M5.IMU.getAccelData(&ax, &ay, &az);
-        M5.IMU.getGyroData(&gx, &gy, &gz);
+        m5Imu.getAccelData(&ax, &ay, &az);
+        m5Imu.getGyroData(&gx, &gy, &gz);
 
         gx -= gyroOffsets[0];
         gy -= gyroOffsets[1];
