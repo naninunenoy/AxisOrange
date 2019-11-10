@@ -16,7 +16,7 @@
 #include <M5StickC.h>
 #include "MahonyAHRS.h"
 
-#define sampleFreq	25.0f			// sample frequency in Hz
+#define sampleFreq	200.0f			// sample frequency in Hz
 #define twoKpDef	(2.0f * 1.0f)	// 2 * proportional gain
 #define twoKiDef	(2.0f * 0.0f)	// 2 * integral gain
 

@@ -40,7 +40,7 @@ namespace imu {
             gx * DEG_TO_RAD, gy * DEG_TO_RAD,  gz * DEG_TO_RAD, 
             ax, ay, az,
             qw, qx, qy, qz);
-        imuData.timestamp = clock();
+        imuData.timestamp = millis();
         lastUpdated = imuData.timestamp;
         return true;
     }
