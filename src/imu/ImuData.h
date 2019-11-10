@@ -1,9 +1,9 @@
-#ifndef __IMU_READER_IMU_DATA_H__
-#define __IMU_READER_IMU_DATA_H__
+#ifndef __IMU_IMU_DATA_H__
+#define __IMU_IMU_DATA_H__
 
 #include <Arduino.h>
 
-namespace imuReader {
+namespace imu {
 
 static const int ImuXyz = 3;
 static const int ImuWxyz = 4;
@@ -22,6 +22,6 @@ public:
     }
 };
 
-} // imuReader
+} // imu
 
-#endif // __IMU_READER_IMU_DATA_H__
+#endif // __IMU_IMU_DATA_H__

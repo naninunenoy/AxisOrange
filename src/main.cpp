@@ -1,5 +1,5 @@
 #include <M5StickC.h>
-#include "ImuReader/mahony/MahonyAHRS.h"
+#include "imu/mahony/MahonyAHRS.h"
 
 float accX = 0.0F;
 float accY = 0.0F;
@@ -22,7 +22,7 @@ float pitch = 0.0F;
 float roll  = 0.0F;
 float yaw   = 0.0F;
 
-imuReader::mahony::MahonyAHRS ahrs;
+imu::mahony::MahonyAHRS ahrs;
 
 void setup() {
   // put your setup code here, to run once:

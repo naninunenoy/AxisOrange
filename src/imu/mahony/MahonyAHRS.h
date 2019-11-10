@@ -1,7 +1,9 @@
-#ifndef __IMU_READER_MAHONY_AHRS_H__
-#define __IMU_READER_MAHONY_AHRS_H__
+#ifndef __IMU_MAHONY_AHRS_H__
+#define __IMU_MAHONY_AHRS_H__
 
-namespace imuReader {
+#undef imu
+
+namespace imu {
 namespace mahony {
 
 class MahonyAHRS {
@@ -17,6 +19,6 @@ public:
 };
 
 } // mahony
-} // imuReader
+} // imu
 
-#endif // __IMU_READER_MAHONY_AHRS_H__
+#endif // __IMU_MAHONY_AHRS_H__
