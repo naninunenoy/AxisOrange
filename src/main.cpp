@@ -1,5 +1,5 @@
 #include <M5StickC.h>
-#include "mahony/MahonyAHRS.h"
+#include "ImuReader/mahony/MahonyAHRS.h"
 
 float accX = 0.0F;
 float accY = 0.0F;
