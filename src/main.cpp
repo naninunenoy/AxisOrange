@@ -1,12 +1,13 @@
 #include <M5StickC.h>
 #include "imu/ImuReader.h"
+#include "BluetoothSerial.h"
 
 #define TASK_DEFAULT_CORE_ID 1
 #define TASK_STACK_DEPTH 4096UL
 #define TASK_NAME_IMU "IMUTask"
 #define TASK_NAME_SESSION "SessionTask"
 #define TASK_SLEEP_IMU 5 // = 1000[ms] / 200[Hz]
-#define TASK_SLEEP_SESSION 100 // = 1000[ms] / 10[Hz]
+#define TASK_SLEEP_SESSION 40 // = 1000[ms] / 25[Hz]
 #define MUTEX_DEFAULT_WAIT 1000UL
 
 static void ImuLoop(void* arg);
@@ -18,9 +19,9 @@ const float offsetGyroX = -1.76546F;
 const float offsetGyroY = -6.8906F;
 const float offsetGyroZ = 14.59196F;
 static SemaphoreHandle_t imuDataMutex = NULL;
+BluetoothSerial btSpp;
 
 void setup() {
-  // put your setup code here, to run once:
   M5.begin();
   // imu
   imuReader = new imu::ImuReader(M5.Imu);
@@ -35,9 +36,9 @@ void setup() {
   M5.Lcd.setCursor(0, 10);
   M5.Lcd.println("  X       Y       Z");
   M5.Lcd.setCursor(0, 50);
-  M5.Lcd.println("  Pitch   Roll    Yaw");
-  // serial
-  Serial.begin(115200);
+  M5.Lcd.println("  Quaternion(WXYZ)");
+  // bluetooth serial
+  btSpp.begin("OrangeAxis");
   // task
   imuDataMutex = xSemaphoreCreateMutex();
   xTaskCreatePinnedToCore(ImuLoop, TASK_NAME_IMU, TASK_STACK_DEPTH, NULL, 2, NULL, TASK_DEFAULT_CORE_ID);
@@ -66,21 +67,22 @@ static void SessionLoop(void* arg) {
     uint32_t entryTime = millis();
     xSemaphoreGive(imuDataMutex);
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-        Serial.printf("%f, %f, %f %f\n", 
-          imuData.quat[0], imuData.quat[1], imuData.quat[2], imuData.quat[3]);
+        float* a = imuData.acc;
+        float* g = imuData.gyro;
+        float* q = imuData.quat;
+        // lcd
         M5.Lcd.setCursor(0, 20);
-        M5.Lcd.printf("%6.2f  %6.2f  %6.2f      ", 
-          imuData.gyro[0], imuData.gyro[1], imuData.gyro[2]);
+        M5.Lcd.printf("%6.2f  %6.2f  %6.2f      ", g[0], g[1], g[2]);
         M5.Lcd.setCursor(140, 20);
         M5.Lcd.print("o/s");
         M5.Lcd.setCursor(0, 30);
-        M5.Lcd.printf(" %5.2f   %5.2f   %5.2f   ", 
-          imuData.acc[0], imuData.acc[1], imuData.acc[2]);
+        M5.Lcd.printf(" %5.2f   %5.2f   %5.2f   ",  a[0], a[1], a[2]);
         M5.Lcd.setCursor(140, 30);
         M5.Lcd.print("G");
         M5.Lcd.setCursor(0, 60);
-        M5.Lcd.printf(" %4.2f  %4.2f  %4.2f  %4.2f", 
-          imuData.quat[0], imuData.quat[1], imuData.quat[2], imuData.quat[3]);
+        M5.Lcd.printf(" %4.2f  %4.2f  %4.2f  %4.2f", q[0], q[1], q[2], q[3]);
+        // bluetooth
+        btSpp.printf("%f,%f,%f,%f\r\n", q[0], q[1], q[2], q[3]);
       }
       xSemaphoreGive(imuDataMutex);
     // idle
