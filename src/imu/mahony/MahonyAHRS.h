@@ -1,7 +1,9 @@
 #ifndef __IMU_MAHONY_AHRS_H__
 #define __IMU_MAHONY_AHRS_H__
 
+#ifdef imu
 #undef imu
+#endif
 
 namespace imu {
 namespace mahony {
