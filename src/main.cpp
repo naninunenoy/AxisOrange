@@ -32,17 +32,15 @@ void setup() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
   M5.Lcd.setCursor(40, 0);
-  M5.Lcd.println("IMU TEST");
-  M5.Lcd.setCursor(0, 10);
-  M5.Lcd.println("  X       Y       Z");
-  M5.Lcd.setCursor(0, 50);
-  M5.Lcd.println("  Quaternion(WXYZ)");
+  M5.Lcd.println("AxisOrange");
   // bluetooth serial
   btSpp.begin("AxisOrange");
   // task
   imuDataMutex = xSemaphoreCreateMutex();
-  xTaskCreatePinnedToCore(ImuLoop, TASK_NAME_IMU, TASK_STACK_DEPTH, NULL, 2, NULL, TASK_DEFAULT_CORE_ID);
-  xTaskCreatePinnedToCore(SessionLoop, TASK_NAME_SESSION, TASK_STACK_DEPTH, NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
+  xTaskCreatePinnedToCore(ImuLoop, TASK_NAME_IMU, TASK_STACK_DEPTH, 
+    NULL, 2, NULL, TASK_DEFAULT_CORE_ID);
+  xTaskCreatePinnedToCore(SessionLoop, TASK_NAME_SESSION, TASK_STACK_DEPTH, 
+    NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
 }
 
 void loop() { /* Do Nothing */ }
@@ -67,22 +65,13 @@ static void SessionLoop(void* arg) {
     uint32_t entryTime = millis();
     xSemaphoreGive(imuDataMutex);
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+        uint32_t t = imuData.timestamp;
         float* a = imuData.acc;
         float* g = imuData.gyro;
         float* q = imuData.quat;
-        // lcd
-        M5.Lcd.setCursor(0, 20);
-        M5.Lcd.printf("%6.2f  %6.2f  %6.2f      ", g[0], g[1], g[2]);
-        M5.Lcd.setCursor(140, 20);
-        M5.Lcd.print("o/s");
-        M5.Lcd.setCursor(0, 30);
-        M5.Lcd.printf(" %5.2f   %5.2f   %5.2f   ",  a[0], a[1], a[2]);
-        M5.Lcd.setCursor(140, 30);
-        M5.Lcd.print("G");
-        M5.Lcd.setCursor(0, 60);
-        M5.Lcd.printf(" %4.2f  %4.2f  %4.2f  %4.2f", q[0], q[1], q[2], q[3]);
         // bluetooth
-        btSpp.printf("%f,%f,%f,%f\r\n", q[0], q[1], q[2], q[3]);
+        btSpp.printf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n",
+          t, a[0], a[1], a[2], g[0], g[1], g[2], q[0], q[1], q[2], q[3]);
       }
       xSemaphoreGive(imuDataMutex);
     // idle
