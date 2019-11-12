@@ -8,7 +8,7 @@ namespace imu {
 
 static const int ImuXyz = 3;
 static const int ImuWxyz = 4;
-static const int ImuDataLen = 4 + (4*3) + (4*3) + (4*4);
+static const int ImuDataLen = 44;//4 + (4*3) + (4*3) + (4*4);
 
 struct ImuData {
 public:

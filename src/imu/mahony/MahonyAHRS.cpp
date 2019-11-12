@@ -124,5 +124,5 @@ float invSqrt(float x) {
 	return y;
 }
 
-} // imuReader
 } // mahony
+} // imu

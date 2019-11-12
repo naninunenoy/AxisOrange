@@ -63,13 +63,13 @@ static void SessionLoop(void* arg) {
   while (1) {
     uint32_t entryTime = millis();
     if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-      uint32_t t = imuData.timestamp;
-      float* a = imuData.acc;
-      float* g = imuData.gyro;
-      float* q = imuData.quat;
-      // bluetooth
-      btSpp.printf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n",
-        t, a[0], a[1], a[2], g[0], g[1], g[2], q[0], q[1], q[2], q[3]);
+      // uint32_t t = imuData.timestamp;
+      // float* a = imuData.acc;
+      // float* g = imuData.gyro;
+      // float* q = imuData.quat;
+      // btSpp.printf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n",
+      //   t, a[0], a[1], a[2], g[0], g[1], g[2], q[0], q[1], q[2], q[3]);
+      btSpp.write((uint8_t*)&imuData, imu::ImuDataLen);
     }
     xSemaphoreGive(imuDataMutex);
     // idle
