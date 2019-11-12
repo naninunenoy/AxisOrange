@@ -48,12 +48,11 @@ void loop() { /* Do Nothing */ }
 static void ImuLoop(void* arg) {
   while (1) {
     uint32_t entryTime = millis();
+    if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+      imuReader->update();
+      imuReader->read(imuData);
+    }
     xSemaphoreGive(imuDataMutex);
-      if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-        imuReader->update();
-        imuReader->read(imuData);
-      }
-      xSemaphoreGive(imuDataMutex);
     // idle
     int32_t sleep = TASK_SLEEP_IMU - (millis() - entryTime);
     vTaskDelay((sleep > 0) ? sleep : 0);
@@ -63,17 +62,16 @@ static void ImuLoop(void* arg) {
 static void SessionLoop(void* arg) {
   while (1) {
     uint32_t entryTime = millis();
+    if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+      uint32_t t = imuData.timestamp;
+      float* a = imuData.acc;
+      float* g = imuData.gyro;
+      float* q = imuData.quat;
+      // bluetooth
+      btSpp.printf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n",
+        t, a[0], a[1], a[2], g[0], g[1], g[2], q[0], q[1], q[2], q[3]);
+    }
     xSemaphoreGive(imuDataMutex);
-      if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-        uint32_t t = imuData.timestamp;
-        float* a = imuData.acc;
-        float* g = imuData.gyro;
-        float* q = imuData.quat;
-        // bluetooth
-        btSpp.printf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n",
-          t, a[0], a[1], a[2], g[0], g[1], g[2], q[0], q[1], q[2], q[3]);
-      }
-      xSemaphoreGive(imuDataMutex);
     // idle
     int32_t sleep = TASK_SLEEP_SESSION - (millis() - entryTime);
     vTaskDelay((sleep > 0) ? sleep : 0);
