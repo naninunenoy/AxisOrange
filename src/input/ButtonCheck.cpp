@@ -1,8 +1,7 @@
 #include "ButtonCheck.h"
 
 namespace input {
-    ButtonCheck::ButtonCheck() {
-        updateFlag = 0;
+    ButtonCheck::ButtonCheck() : updateFlag(0) {
         for(int i = 0; i < INPUT_BTN_NUM; i++) {
             buttonStateMap.insert(std::make_pair(AllBtns[i], BtnStateRelease));
         }
@@ -10,7 +9,7 @@ namespace input {
 
     ButtonCheck::~ButtonCheck() { }
 
-    bool ButtonCheck::containsUpdate(M5StickC& runningDevice) {
+    bool ButtonCheck::containsUpdate(M5StickC& runningDevice, uint8_t& outBtnBits) {
         updateFlag = 0;
         for(int i = 0; i < INPUT_BTN_NUM; i++) {
             const Btn btn = AllBtns[i];
@@ -19,11 +18,11 @@ namespace input {
                 updateFlag |= btn;
             }
         }
-        return updateFlag != 0;
-    }
-
-    bool ButtonCheck::isBtnUpdate(Btn of) const {
-        return (updateFlag & of) != 0;
+        bool hasUpdate = updateFlag != 0;
+        if (hasUpdate) {
+            outBtnBits = updateFlag;
+        }
+        return hasUpdate;
     }
 
     BtnState ButtonCheck::getBtnState(Btn of) const { 

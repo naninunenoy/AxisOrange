@@ -15,30 +15,14 @@ class ButtonCheck {
 public:
     explicit ButtonCheck();
     ~ButtonCheck();
-    bool containsUpdate(M5StickC& runningDevice);
-    bool isBtnUpdate(Btn of) const;
-    BtnState getBtnState(Btn of) const;
+    bool containsUpdate(M5StickC& runningDevice, uint8_t& outBtnBits);
 private:
     uint8_t updateFlag;
+    BtnState getBtnState(Btn of) const;
     bool isButtonStateChanged(Btn of, BtnState ithink, M5StickC& device);
     BtnState getCurrentDeviceBtnState(Btn of, M5StickC& device) const;
     std::map<Btn, BtnState> buttonStateMap;
 }; // ButtonCheck
-
-inline uint8_t toBtnCode(Btn btn) {
-    switch (btn) {
-    case BtnA: return 'A';
-    case BtnB: return 'B';
-    }
-    return '?';
-}
-
-inline uint8_t toBtnPress(BtnState btn) {
-    if (btn == BtnStatePress) {
-        return 1;
-    }
-    return 0;
-}
 
 } // input
 
