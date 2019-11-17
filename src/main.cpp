@@ -1,8 +1,9 @@
 #include <M5StickC.h>
+#include <BluetoothSerial.h>
 #include "imu/ImuReader.h"
 #include "input/ButtonCheck.h"
 #include "input/ButtonData.h"
-#include "BluetoothSerial.h"
+#include "session/SessionData.h"
 
 #define TASK_DEFAULT_CORE_ID 1
 #define TASK_STACK_DEPTH 4096UL
@@ -73,17 +74,21 @@ static void ImuLoop(void* arg) {
 }
 
 static void SessionLoop(void* arg) {
+  static session::SessionData imuSessionData(session::DataDefineImu);
+  static session::SessionData btnSessionData(session::DataDefineButton);
   while (1) {
     uint32_t entryTime = millis();
     // imu
     if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-      btSpp.write((uint8_t*)&imuData, imu::ImuDataLen);
+      imuSessionData.write((uint8_t*)&imuData, imu::ImuDataLen);
+      btSpp.write((uint8_t*)&imuSessionData, imuSessionData.length());
     }
     xSemaphoreGive(imuDataMutex);
     // button
     if (xSemaphoreTake(btnDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
       if (hasButtonUpdate) {
-        btSpp.write((uint8_t*)&btnData, input::ButtonDataLen);
+        btnSessionData.write((uint8_t*)&btnData, input::ButtonDataLen);
+        btSpp.write((uint8_t*)&btnSessionData, btnSessionData.length());
         hasButtonUpdate = false;
       }
     }

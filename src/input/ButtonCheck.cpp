@@ -20,9 +20,16 @@ namespace input {
         }
         bool hasUpdate = updateFlag != 0;
         if (hasUpdate) {
-            outBtnBits = updateFlag;
+            outBtnBits = getCurrentBits();
         }
         return hasUpdate;
+    }
+
+    uint8_t ButtonCheck::getCurrentBits() const {
+        return (
+            BtnB * getBtnState(BtnB) +
+            BtnA * getBtnState(BtnA)
+        );
     }
 
     BtnState ButtonCheck::getBtnState(Btn of) const { 

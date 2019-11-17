@@ -19,6 +19,7 @@ public:
 private:
     uint8_t updateFlag;
     BtnState getBtnState(Btn of) const;
+    uint8_t getCurrentBits() const;
     bool isButtonStateChanged(Btn of, BtnState ithink, M5StickC& device);
     BtnState getCurrentDeviceBtnState(Btn of, M5StickC& device) const;
     std::map<Btn, BtnState> buttonStateMap;
