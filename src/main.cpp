@@ -4,6 +4,7 @@
 #include "input/ButtonCheck.h"
 #include "input/ButtonData.h"
 #include "session/SessionData.h"
+#include "prefs/Settings.h"
 
 #define TASK_DEFAULT_CORE_ID 1
 #define TASK_STACK_DEPTH 4096UL
@@ -20,9 +21,7 @@ static void SessionLoop(void* arg);
 static void ButtonLoop(void* arg);
 
 imu::ImuReader* imuReader;
-const float offsetGyroX = -1.76546F;
-const float offsetGyroY = -6.8906F;
-const float offsetGyroZ = 14.59196F;
+float gyroOffset[3] = { 0.0F };
 BluetoothSerial btSpp;
 input::ButtonCheck button;
 
@@ -32,18 +31,27 @@ bool hasButtonUpdate = false;
 static SemaphoreHandle_t imuDataMutex = NULL;
 static SemaphoreHandle_t btnDataMutex = NULL;
 
+bool sensorRunning = false;
+prefs::Settings settingPref;
+
 void setup() {
   M5.begin();
-  // imu
-  imuReader = new imu::ImuReader(M5.Imu);
-  imuReader->initialize();
-  imuReader->writeGyroOffset(offsetGyroX, offsetGyroY, offsetGyroZ);
   // lcd
   M5.Lcd.setRotation(3);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
+  // read settings
+  M5.Lcd.setCursor(40, 0);
+  M5.Lcd.println("GyroOffset");
+  settingPref.begin();
+  settingPref.readGyroOffset(gyroOffset);
+  settingPref.finish();
+  // imu
   M5.Lcd.setCursor(40, 0);
   M5.Lcd.println("AxisOrange");
+  imuReader = new imu::ImuReader(M5.Imu);
+  imuReader->initialize();
+  imuReader->writeGyroOffset(gyroOffset[0], gyroOffset[1], gyroOffset[2]);
   // bluetooth serial
   btSpp.begin("AxisOrange");
   // task
@@ -55,6 +63,7 @@ void setup() {
     NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
   xTaskCreatePinnedToCore(ButtonLoop, TASK_NAME_BUTTON, TASK_STACK_DEPTH, 
     NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
+
 }
 
 void loop() { /* Do Nothing */ }
@@ -62,11 +71,13 @@ void loop() { /* Do Nothing */ }
 static void ImuLoop(void* arg) {
   while (1) {
     uint32_t entryTime = millis();
-    if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-      imuReader->update();
-      imuReader->read(imuData);
+    if (sensorRunning) {
+      if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+        imuReader->update();
+        imuReader->read(imuData);
+      }
+      xSemaphoreGive(imuDataMutex);
     }
-    xSemaphoreGive(imuDataMutex);
     // idle
     int32_t sleep = TASK_SLEEP_IMU - (millis() - entryTime);
     vTaskDelay((sleep > 0) ? sleep : 0);
@@ -78,21 +89,23 @@ static void SessionLoop(void* arg) {
   static session::SessionData btnSessionData(session::DataDefineButton);
   while (1) {
     uint32_t entryTime = millis();
-    // imu
-    if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-      imuSessionData.write((uint8_t*)&imuData, imu::ImuDataLen);
-      btSpp.write((uint8_t*)&imuSessionData, imuSessionData.length());
-    }
-    xSemaphoreGive(imuDataMutex);
-    // button
-    if (xSemaphoreTake(btnDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-      if (hasButtonUpdate) {
-        btnSessionData.write((uint8_t*)&btnData, input::ButtonDataLen);
-        btSpp.write((uint8_t*)&btnSessionData, btnSessionData.length());
-        hasButtonUpdate = false;
+    if (sensorRunning) {
+      // imu
+      if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+        imuSessionData.write((uint8_t*)&imuData, imu::ImuDataLen);
+        btSpp.write((uint8_t*)&imuSessionData, imuSessionData.length());
       }
+      xSemaphoreGive(imuDataMutex);
+      // button
+      if (xSemaphoreTake(btnDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+        if (hasButtonUpdate) {
+          btnSessionData.write((uint8_t*)&btnData, input::ButtonDataLen);
+          btSpp.write((uint8_t*)&btnSessionData, btnSessionData.length());
+          hasButtonUpdate = false;
+        }
+      }
+      xSemaphoreGive(btnDataMutex);
     }
-    xSemaphoreGive(btnDataMutex);
     // idle
     int32_t sleep = TASK_SLEEP_SESSION - (millis() - entryTime);
     vTaskDelay((sleep > 0) ? sleep : 0);
