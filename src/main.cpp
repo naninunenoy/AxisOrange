@@ -38,8 +38,10 @@ prefs::Settings settingPref;
 void UpdateLcd() {
   M5.Lcd.setCursor(40, 0);
   if (gyroOffsetInstalled) {
+    M5.Lcd.fillScreen(BLACK);
     M5.Lcd.println("AxisOrange");
   } else {
+    M5.Lcd.fillScreen(GREEN);
     M5.Lcd.println("GyroOffset");
   }
 }
@@ -49,11 +51,11 @@ void setup() {
   // read settings
   float gyroOffset[3] = { 0.0F };
   settingPref.begin();
+  //settingPref.clear(); // to reinstall gyro offset by only m5stickc remove commentout
   gyroOffsetInstalled = settingPref.readGyroOffset(gyroOffset);
   settingPref.finish();
   // lcd
   M5.Lcd.setRotation(3);
-  M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
   UpdateLcd();
   // imu
@@ -73,7 +75,6 @@ void setup() {
     NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
   xTaskCreatePinnedToCore(ButtonLoop, TASK_NAME_BUTTON, TASK_STACK_DEPTH, 
     NULL, 1, NULL, TASK_DEFAULT_CORE_ID);
-
 }
 
 void loop() { /* Do Nothing */ }
