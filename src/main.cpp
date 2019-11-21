@@ -1,6 +1,7 @@
 #include <M5StickC.h>
 #include <BluetoothSerial.h>
 #include "imu/ImuReader.h"
+#include "imu/AverageCalc.h"
 #include "input/ButtonCheck.h"
 #include "input/ButtonData.h"
 #include "session/SessionData.h"
@@ -21,7 +22,6 @@ static void SessionLoop(void* arg);
 static void ButtonLoop(void* arg);
 
 imu::ImuReader* imuReader;
-float gyroOffset[3] = { 0.0F };
 BluetoothSerial btSpp;
 input::ButtonCheck button;
 
@@ -31,27 +31,37 @@ bool hasButtonUpdate = false;
 static SemaphoreHandle_t imuDataMutex = NULL;
 static SemaphoreHandle_t btnDataMutex = NULL;
 
-bool sensorRunning = false;
+bool gyroOffsetInstalled = false;
+imu::AverageCalcXYZ gyroAve;
 prefs::Settings settingPref;
+
+void UpdateLcd() {
+  M5.Lcd.setCursor(40, 0);
+  if (gyroOffsetInstalled) {
+    M5.Lcd.println("AxisOrange");
+  } else {
+    M5.Lcd.println("GyroOffset");
+  }
+}
 
 void setup() {
   M5.begin();
+  // read settings
+  float gyroOffset[3] = { 0.0F };
+  settingPref.begin();
+  gyroOffsetInstalled = settingPref.readGyroOffset(gyroOffset);
+  settingPref.finish();
   // lcd
   M5.Lcd.setRotation(3);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(1);
-  // read settings
-  M5.Lcd.setCursor(40, 0);
-  M5.Lcd.println("GyroOffset");
-  settingPref.begin();
-  settingPref.readGyroOffset(gyroOffset);
-  settingPref.finish();
+  UpdateLcd();
   // imu
-  M5.Lcd.setCursor(40, 0);
-  M5.Lcd.println("AxisOrange");
   imuReader = new imu::ImuReader(M5.Imu);
   imuReader->initialize();
-  imuReader->writeGyroOffset(gyroOffset[0], gyroOffset[1], gyroOffset[2]);
+  if (gyroOffsetInstalled) {
+    imuReader->writeGyroOffset(gyroOffset[0], gyroOffset[1], gyroOffset[2]);
+  }
   // bluetooth serial
   btSpp.begin("AxisOrange");
   // task
@@ -71,13 +81,28 @@ void loop() { /* Do Nothing */ }
 static void ImuLoop(void* arg) {
   while (1) {
     uint32_t entryTime = millis();
-    if (sensorRunning) {
-      if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
-        imuReader->update();
-        imuReader->read(imuData);
+    if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
+      imuReader->update();
+      imuReader->read(imuData);
+      if (!gyroOffsetInstalled) {
+        if (!gyroAve.push(imuData.gyro[0], imuData.gyro[1], imuData.gyro[2])) {
+          float x = gyroAve.averageX();
+          float y = gyroAve.averageY();
+          float z = gyroAve.averageZ();
+          // set offset
+          imuReader->writeGyroOffset(x, y, z);
+          // save offset
+          float offset[] = {x, y, z};
+          settingPref.begin();
+          settingPref.writeGyroOffset(offset);
+          settingPref.finish();
+          gyroOffsetInstalled = true;
+          gyroAve.reset();
+          UpdateLcd();
+        }
       }
-      xSemaphoreGive(imuDataMutex);
     }
+    xSemaphoreGive(imuDataMutex);
     // idle
     int32_t sleep = TASK_SLEEP_IMU - (millis() - entryTime);
     vTaskDelay((sleep > 0) ? sleep : 0);
@@ -89,7 +114,7 @@ static void SessionLoop(void* arg) {
   static session::SessionData btnSessionData(session::DataDefineButton);
   while (1) {
     uint32_t entryTime = millis();
-    if (sensorRunning) {
+    if (gyroOffsetInstalled) {
       // imu
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
         imuSessionData.write((uint8_t*)&imuData, imu::ImuDataLen);

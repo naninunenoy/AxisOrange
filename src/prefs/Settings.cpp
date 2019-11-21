@@ -6,7 +6,7 @@ namespace prefs {
     Settings::~Settings() { }
 
     void Settings::begin() {
-        preferences.begin(prefNameSpaceKey, false);
+        preferences.begin(PrefNameSpaceKey, false);
     }
 
     void Settings::clear() {
@@ -18,15 +18,19 @@ namespace prefs {
     }
 
     void Settings::writeGyroOffset(const float* gyroOffset) {
-        preferences.putFloat(prefDataKey_gyroOffsetX, gyroOffset[0]);
-        preferences.putFloat(prefDataKey_gyroOffsetY, gyroOffset[1]);
-        preferences.putFloat(prefDataKey_gyroOffsetZ, gyroOffset[2]);
+        preferences.putFloat(PrefDataKey_gyroOffsetX, gyroOffset[0]);
+        preferences.putFloat(PrefDataKey_gyroOffsetY, gyroOffset[1]);
+        preferences.putFloat(PrefDataKey_gyroOffsetZ, gyroOffset[2]);
     }
 
-    void Settings::readGyroOffset(float* gyroOffset) {
-        gyroOffset[0] = preferences.getFloat(prefDataKey_gyroOffsetX, 0.0F);
-        gyroOffset[1] = preferences.getFloat(prefDataKey_gyroOffsetY, 0.0F);
-        gyroOffset[2] = preferences.getFloat(prefDataKey_gyroOffsetZ, 0.0F);
+    bool Settings::readGyroOffset(float* gyroOffset) {
+        float x = preferences.getFloat(PrefDataKey_gyroOffsetX, 0.0F);
+        float y = preferences.getFloat(PrefDataKey_gyroOffsetY, 0.0F);
+        float z = preferences.getFloat(PrefDataKey_gyroOffsetZ, 0.0F);
+        gyroOffset[0] = x;
+        gyroOffset[1] = y;
+        gyroOffset[2] = z;
+        return x != 0.0F || y != 0.0F || z != 0.0F;
     }
 
 } // prefs
