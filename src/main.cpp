@@ -31,7 +31,8 @@ bool hasButtonUpdate = false;
 static SemaphoreHandle_t imuDataMutex = NULL;
 static SemaphoreHandle_t btnDataMutex = NULL;
 
-bool gyroOffsetInstalled = false;
+uint8_t readBuffer[session::data_length::max] = {0};
+bool gyroOffsetInstalled = true;
 imu::AverageCalcXYZ gyroAve;
 prefs::Settings settingPref;
 
@@ -52,7 +53,7 @@ void setup() {
   float gyroOffset[3] = { 0.0F };
   settingPref.begin();
   //settingPref.clear(); // to reinstall gyro offset by only m5stickc remove commentout
-  gyroOffsetInstalled = settingPref.readGyroOffset(gyroOffset);
+  settingPref.readGyroOffset(gyroOffset);
   settingPref.finish();
   // lcd
   M5.Lcd.setRotation(3);
@@ -115,6 +116,7 @@ static void SessionLoop(void* arg) {
   static session::SessionData btnSessionData(session::DataDefineButton);
   while (1) {
     uint32_t entryTime = millis();
+    // write
     if (gyroOffsetInstalled) {
       // imu
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
@@ -131,6 +133,14 @@ static void SessionLoop(void* arg) {
         }
       }
       xSemaphoreGive(btnDataMutex);
+    }
+    //read
+    size_t len = btSpp.readBytes(readBuffer, session::data_length::header);
+    if (len = session::data_length::header) {
+      uint16_t dataId = (readBuffer[1] << 8)+ readBuffer[0];
+      if (dataId == session::data_type::installGyroOffset && gyroOffsetInstalled) {
+        gyroOffsetInstalled = false;
+      }
     }
     // idle
     int32_t sleep = TASK_SLEEP_SESSION - (millis() - entryTime);
