@@ -155,6 +155,7 @@ static void ReadSessionLoop(void* arg) {
       uint16_t dataId = (uint16_t)((readBuffer[1] << 8) | readBuffer[0]);
       if (dataId == session::data_type::installGyroOffset && gyroOffsetInstalled) {
         gyroOffsetInstalled = false;
+        imuReader->writeGyroOffset(0.0F, 0.0F, 0.0F);
         UpdateLcd();
       }
     }
