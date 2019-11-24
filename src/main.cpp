@@ -52,6 +52,7 @@ void UpdateLcd() {
 
 void setup() {
   M5.begin();
+  Serial.begin(115200);
   // read settings
   float gyroOffset[3] = { 0.0F };
   settingPref.begin();
@@ -121,8 +122,7 @@ static void WriteSessionLoop(void* arg) {
   static session::SessionData btnSessionData(session::DataDefineButton);
   while (1) {
     uint32_t entryTime = millis();
-    // write
-      // imu
+    // imu
     if (gyroOffsetInstalled) {
       if (xSemaphoreTake(imuDataMutex, MUTEX_DEFAULT_WAIT) == pdTRUE) {
         imuSessionData.write((uint8_t*)&imuData, imu::ImuDataLen);
@@ -146,7 +146,6 @@ static void WriteSessionLoop(void* arg) {
 }
 
 static void ReadSessionLoop(void* arg) {
-  Serial.begin(115200);
   while (1) {
     uint32_t entryTime = millis();
     //read
