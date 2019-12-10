@@ -40,7 +40,7 @@ This project use [PlatformIO](https://platformio.org/).
     - https://github.com/m5stack/M5StickC
     - MIT
  * BluetoothSerial
-    - https://github.com/espressif/arduino-esp32/tree/master/libraries/
+    - https://github.com/espressif/arduino-esp32/tree/master/libraries/BluetoothSerial
     - http://www.apache.org/licenses/LICENSE-2.0
  * Mahony filter
     - https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
