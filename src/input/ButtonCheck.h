@@ -5,11 +5,11 @@
 #include <map>
 
 namespace input {
-enum Btn { BtnA = 0x01, BtnB = 0x02 };
+enum Btn { BtnA = 0x01, BtnB = 0x02, BtnC = 0x04 };
 enum BtnState { BtnStateRelease = 0, BtnStatePress = 1,  };
 
-#define INPUT_BTN_NUM 2
-static const Btn AllBtns[INPUT_BTN_NUM] = { BtnA, BtnB };
+#define INPUT_BTN_NUM 3
+static const Btn AllBtns[INPUT_BTN_NUM] = { BtnA, BtnB, BtnC };
 
 class ButtonCheck {
 public:

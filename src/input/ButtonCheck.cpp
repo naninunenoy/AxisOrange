@@ -27,6 +27,7 @@ namespace input {
 
     uint8_t ButtonCheck::getCurrentBits() const {
         return (
+            BtnC * getBtnState(BtnC) +
             BtnB * getBtnState(BtnB) +
             BtnA * getBtnState(BtnA)
         );
@@ -53,6 +54,7 @@ namespace input {
         switch (of) {
         case BtnA: return (device.BtnA.isPressed() == 0) ? BtnStateRelease : BtnStatePress;
         case BtnB: return (device.BtnB.isPressed() == 0) ? BtnStateRelease : BtnStatePress;
+        case BtnC: return (device.BtnC.isPressed() == 0) ? BtnStateRelease : BtnStatePress;
         }
         return BtnStateRelease;
     }
