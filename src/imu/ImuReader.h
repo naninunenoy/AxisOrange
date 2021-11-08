@@ -2,9 +2,6 @@
 #define __IMU_IMU_READER_H__
 
 #include "utility/IMU_Class.hpp"
-#ifdef IMU
-#undef IMU
-#endif
 #include "mahony/MahonyAHRS.h"
 #include "ImuData.h"
 

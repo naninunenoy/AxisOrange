@@ -7,6 +7,10 @@
 #include "session/SessionData.h"
 #include "prefs/Settings.h"
 
+#ifdef imu
+#undef imu
+#endif
+
 #define TASK_DEFAULT_CORE_ID 1
 #define TASK_STACK_DEPTH 4096UL
 #define TASK_NAME_IMU "IMUTask"
