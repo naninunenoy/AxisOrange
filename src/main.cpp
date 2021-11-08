@@ -6,6 +6,7 @@
 #include "input/ButtonData.h"
 #include "session/SessionData.h"
 #include "prefs/Settings.h"
+#include "device_name/DeviceName.h"
 
 #define TASK_DEFAULT_CORE_ID 1
 #define TASK_STACK_DEPTH 4096UL
@@ -38,6 +39,7 @@ uint8_t readBuffer[session::data_length::max] = {0};
 bool gyroOffsetInstalled = true;
 imu::AverageCalcXYZ gyroAve;
 prefs::Settings settingPref;
+device_name::DeviceName deviceName("AxisOrange");
 
 void UpdateLcd() {
   M5.Lcd.setCursor(40, 0);
@@ -70,7 +72,7 @@ void setup() {
     imuReader->writeGyroOffset(gyroOffset[0], gyroOffset[1], gyroOffset[2]);
   }
   // bluetooth serial
-  btSpp.begin("AxisOrange");
+  btSpp.begin(deviceName.getName(M5.getBoard()));
   // task
   imuDataMutex = xSemaphoreCreateMutex();
   btnDataMutex = xSemaphoreCreateMutex();
