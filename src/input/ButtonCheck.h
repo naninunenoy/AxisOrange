@@ -1,7 +1,7 @@
 #ifndef __INPUT_BUTTON_CHECK_H
 #define __INPUT_BUTTON_CHECK_H 
 
-#include <M5StickC.h>
+#include <M5Unified.h>
 #include <map>
 
 namespace input {
@@ -15,13 +15,13 @@ class ButtonCheck {
 public:
     explicit ButtonCheck();
     ~ButtonCheck();
-    bool containsUpdate(M5StickC& runningDevice, uint8_t& outBtnBits);
+    bool containsUpdate(m5::M5Unified& runningDevice, uint8_t& outBtnBits);
 private:
     uint8_t updateFlag;
     BtnState getBtnState(Btn of) const;
     uint8_t getCurrentBits() const;
-    bool isButtonStateChanged(Btn of, BtnState ithink, M5StickC& device);
-    BtnState getCurrentDeviceBtnState(Btn of, M5StickC& device) const;
+    bool isButtonStateChanged(Btn of, BtnState ithink, m5::M5Unified& device);
+    BtnState getCurrentDeviceBtnState(Btn of, m5::M5Unified& device) const;
     std::map<Btn, BtnState> buttonStateMap;
 }; // ButtonCheck
 
