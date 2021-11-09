@@ -42,6 +42,6 @@ namespace device_name {
     }
     
     void DeviceName::concatDeviceName(const char* deviceName) {
-        snprintf(name, DEVICE_NAME_MAX_LEN, "%s(%s)", DEVICE_NAME_PREFIX, name);
+        snprintf(name, DEVICE_NAME_MAX_LEN, "%s(%s)", DEVICE_NAME_PREFIX, deviceName);
     }
 } // device_name
