@@ -1,4 +1,4 @@
-#include <M5StickC.h>
+#include <M5Unified.h>
 #include <BluetoothSerial.h>
 #include "imu/ImuReader.h"
 #include "imu/AverageCalc.h"
