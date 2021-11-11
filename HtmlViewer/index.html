@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Axis Orange Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sprintf/1.1.2/sprintf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@1.8.0/dist/chartjs-plugin-streaming.min.js"></script>
+  </head>
+
+  <!-- I refered to -->
+  <!-- https://qiita.com/youtoy/items/6394a5570ddd54a2ce87 -->
+  <body>
+    <h1>Axis Orange Viewer</h1>
+    <button onclick="onStartButtonClick()">list serial devices</button>
+    <hr>
+    <canvas id="myChart"></canvas>
+    <label>Press this button to calculate "gyro zero point error".
+      But keep it stable during gyro-offset install</label>
+    <button onclick="onGyroOffsetInstallButtonClick()">gyro-offset install</button>
+    <hr>
+    <label>IMU data csv</label>
+    <button class="csvCopyButton" onclick="onCopyCsvButtonClick(event)">copy</button>
+    <br>
+    <textarea id="csvTextArea" cols="60" rows="10" readonly="readonly">t,qw,qx,qy,qz,ax,ay,az,gx,gy,gz</textarea >
+
+    <script>
+      const ctx = document.getElementById("myChart").getContext("2d");
+      const csvTextArea = document.getElementById("csvTextArea");
+      const chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: 'quatX', fill: false,
+              borderColor: 'rgb(200, 50, 50)', backgroundColor: 'rgba(200, 50, 50, 0.2)',
+            },
+            {
+              label: 'quatY', fill: false,
+              borderColor: 'rgb(50, 200, 50)', backgroundColor: 'rgba(50, 200, 50, 0.2)',
+            },
+            {
+              label: 'quatZ', fill: false,
+              borderColor: 'rgb(50, 50, 200)', backgroundColor: 'rgba(50, 50, 200, 0.2)',
+            },
+            {
+              label: 'quatW', fill: false,
+              borderColor: 'rgb(1, 1, 1)', backgroundColor: 'rgba(1, 1, 1, 0.2)',
+            },
+          ],
+        },
+        options: {
+          scales: {
+            xAxes: [{
+                type: "realtime",
+                realtime: { delay: 500, },
+            },],
+            yAxes: [{
+                ticks: { min: -1.0, max: 1.0 }
+            },],
+          },
+        },
+      });
+
+      const headerLength = 4;
+      const imuDataId = 1;
+      const btnDataId = 2;
+      let writer;
+      async function onStartButtonClick() {
+        try {
+          const port = await navigator.serial.requestPort();
+		      let buffer = [];
+          let nextDataId = 0;
+          let nextDataLen = 0;
+          await port.open({ baudRate: 115200 });
+          
+          while (port.readable) {
+            const reader = port.readable.getReader();
+            writer = port.writable.getWriter();
+
+            try {
+              while (true) {
+                const {value, done} = await reader.read();
+                if (done) {
+                    reader.releaseLock();
+                    writer.releaseLock();
+                    break;
+                }
+                // add new data
+                for (let i = 0; i < value.length; i++) {
+                    buffer.push(value[i]);
+                }
+
+                if (nextDataId == 0 || nextDataLen == 0) {
+                    // header
+                    if (buffer.length < 4) {
+                        continue;
+                    }
+                    const headerBuffer = new ArrayBuffer(headerLength);
+                    const header = new Uint8Array(headerBuffer);
+                    for (let i = 0; i < headerLength; i++) {
+                        header[i] = buffer[i];
+                    }
+                    const headerView = new DataView(headerBuffer);
+                    nextDataId = headerView.getUint16(0, true);
+                    nextDataLen = headerView.getUint16(2, true);
+                    // remove read data
+                    for (let i = 0; i < headerLength; i++) {
+                        buffer.shift();
+                    }
+                }
+                if (nextDataId > 0 && nextDataLen > 0) {
+                    // data
+                    if (buffer.length < nextDataLen) {
+                        continue;
+                    }
+                    const dataBuffer = new ArrayBuffer(nextDataLen);
+                    const data = new Uint8Array(dataBuffer);
+                    for (let i = 0; i < nextDataLen; i++) {
+                        data[i] = buffer[i];
+                    }
+                    const dataView = new DataView(dataBuffer);
+                    if (nextDataId == imuDataId) {
+                        let offset = 0;
+                        let t = dataView.getUint32(offset, true);   offset += 4;
+                        let ax = dataView.getFloat32(offset, true); offset += 4;
+                        let ay = dataView.getFloat32(offset, true); offset += 4;
+                        let az = dataView.getFloat32(offset, true); offset += 4;
+                        let gx = dataView.getFloat32(offset, true); offset += 4;
+                        let gy = dataView.getFloat32(offset, true); offset += 4;
+                        let gz = dataView.getFloat32(offset, true); offset += 4;
+                        let qw = dataView.getFloat32(offset, true); offset += 4;
+                        let qx = dataView.getFloat32(offset, true); offset += 4;
+                        let qy = dataView.getFloat32(offset, true); offset += 4;
+                        let qz = dataView.getFloat32(offset, true); offset += 4;
+                        //console.info(t, /*ax, ay, az, gx, gy, gz,*/ qw, qx, qy, qz);
+                        // graph
+                        drawChars(t, qw, qx, qy, qz);
+                        appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz);
+                    } else if (nextDataId == btnDataId) {
+                        let t = dataView.getUint32(true);
+                        let x = data[4];
+                        let btnA = (x & 0x01) != 0x00 ? "press" : "release";
+                        let btnB = (x & 0x02) != 0x00 ? "press" : "release";
+                        let btnC = (x & 0x04) != 0x00 ? "press" : "release";
+                        console.info("A is", btnA, "B is", btnB, "C is", btnC)
+                    } else {
+                        console.info("unknown data id", nextDataId);
+                    }
+                    // remove read data
+                    for (let i = 0; i < nextDataLen; i++) {
+                        buffer.shift();
+                    }
+                    nextDataId = 0;
+                    nextDataLen = 0;
+                }
+              }
+              await port.close();
+            } catch (error) {
+              console.log("Error: Read");
+              console.log(error);
+            } finally {
+              reader.releaseLock();
+              writer.releaseLock();
+            }
+          }
+        } catch (error) {
+          console.log("Error: Open");
+          console.log(error);
+        }
+      }
+      async function onGyroOffsetInstallButtonClick() {
+        if (typeof writer === "undefined") {
+          return;
+        }
+        const dataBuffer = new ArrayBuffer(4);
+        const dataView = new DataView(dataBuffer);
+        // 0x8001 is command id of gyro offset install
+        dataView.setUint16(0, 0x8001, true);
+        dataView.setUint16(2, 0);
+        try {
+          await writer.write(dataBuffer)
+        } catch (error) {
+          console.log("Error: Write");
+          console.log(error);
+        }
+      }
+      function onCopyCsvButtonClick(event) {
+        const tmpTextArea = document.createElement('textarea');
+        tmpTextArea.value = csvTextArea.value;
+        event.target.appendChild(tmpTextArea);
+        tmpTextArea.select();
+        document.execCommand('copy');
+        event.target.removeChild(tmpTextArea);
+      }
+      const precision = 5;
+      function appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz) {
+        let newLine = sprintf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", t,
+         qw.toFixed(precision), qx.toFixed(precision), qy.toFixed(precision), qz.toFixed(precision), 
+         ax.toFixed(precision), ay.toFixed(precision), az.toFixed(precision), 
+         gx.toFixed(precision), gy.toFixed(precision), gz.toFixed(precision));
+         csvTextArea.value += sprintf("\n%s", newLine);
+      }
+      function drawChars(t, qw, qx, qy, qz) {
+        const now = Date.now();
+        chart.data.datasets[0].data.push({ x: now, y: qx });
+        chart.data.datasets[1].data.push({ x: now, y: qy });
+        chart.data.datasets[2].data.push({ x: now, y: qz });
+        chart.data.datasets[3].data.push({ x: now, y: qw });
+        chart.update({ preservation: true });
+      } 
+    </script>
+  </body>
+</html>
