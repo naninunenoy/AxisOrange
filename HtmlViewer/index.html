@@ -24,41 +24,36 @@
         data: {
           datasets: [
             {
-              label: 'X',
-              borderColor: 'rgb(200, 50, 50)',
-              backgroundColor: 'rgba(200, 50, 50, 0.2)',
+              label: 'X', fill: false,
+              borderColor: 'rgb(200, 50, 50)', backgroundColor: 'rgba(200, 50, 50, 0.2)',
               data: [],
             },
             {
-              label: 'Y',
-              borderColor: 'rgb(50, 50, 200)',
-              backgroundColor: 'rgba(50, 50, 200, 0.2)',
+              label: 'Y', fill: false,
+              borderColor: 'rgb(50, 50, 200)', backgroundColor: 'rgba(50, 50, 200, 0.2)',
               data: [],
             },
             {
-              label: 'Z',
-              borderColor: 'rgb(50, 200, 50)',
-              backgroundColor: 'rgba(50, 200, 50, 0.2)',
+              label: 'Z', fill: false,
+              borderColor: 'rgb(50, 200, 50)', backgroundColor: 'rgba(50, 200, 50, 0.2)',
               data: [],
             },
             {
-              label: 'W',
-              borderColor: 'rgb(1, 1, 1)',
-              backgroundColor: 'rgba(1, 1, 1, 0.2)',
+              label: 'W', fill: false,
+              borderColor: 'rgb(1, 1, 1)', backgroundColor: 'rgba(1, 1, 1, 0.2)',
               data: [],
             },
           ],
         },
         options: {
           scales: {
-            xAxes: [
-              {
+            xAxes: [{
                 type: "realtime",
-                realtime: {
-                  delay: 500,
-                },
-              },
-            ],
+                realtime: { delay: 500, },
+            },],
+            yAxes: [{
+                ticks: { min: -1.0, max: 1.0 }
+            },],
           },
         },
       });
@@ -69,7 +64,7 @@
       async function onStartButtonClick() {
         try {
           const port = await navigator.serial.requestPort();
-		  let buffer = [];
+		      let buffer = [];
           let nextDataId = 0;
           let nextDataLen = 0;
           await port.open({ baudRate: 115200 });
@@ -84,6 +79,7 @@
                     reader.releaseLock();
                     break;
                 }
+                // add new data
                 for (let i = 0; i < value.length; i++) {
                     buffer.push(value[i]);
                 }
@@ -101,6 +97,7 @@
                     const headerView = new DataView(headerBuffer);
                     nextDataId = headerView.getUint16(0, true);
                     nextDataLen = headerView.getUint16(2, true);
+                    // remove read data
                     for (let i = 0; i < headerLength; i++) {
                         buffer.shift();
                     }
@@ -147,6 +144,7 @@
                     } else {
                         console.info("unknown data id", nextDataId);
                     }
+                    // remove read data
                     for (let i = 0; i < nextDataLen; i++) {
                         buffer.shift();
                     }
