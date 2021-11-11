@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Axis Orange Viewer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sprintf/1.1.2/sprintf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@1.8.0/dist/chartjs-plugin-streaming.min.js"></script>
   </head>
@@ -16,9 +17,11 @@
     <button onclick="onStartButtonClick()">list serial devices</button>
     <br>
     <canvas id="myChart"></canvas>
+    <textarea id="csvTextArea" cols="40" readonly="readonly">t,qw,qx,qy,qz,ax,ay,az,gx,gy,gz</textarea >
 
     <script>
       const ctx = document.getElementById("myChart").getContext("2d");
+      const csvTextArea = document.getElementById("csvTextArea");
       let chart = new Chart(ctx, {
         type: "line",
         data: {
@@ -128,12 +131,8 @@
                         let qz = dataView.getFloat32(offset, true); offset += 4;
                         console.info(t, /*ax, ay, az, gx, gy, gz,*/ qw, qx, qy, qz);
                         // graph
-                        const now = Date.now();
-                        chart.data.datasets[0].data.push({ x: now, y: qx });
-                        chart.data.datasets[1].data.push({ x: now, y: qy });
-                        chart.data.datasets[2].data.push({ x: now, y: qz });
-                        chart.data.datasets[3].data.push({ x: now, y: qw });
-                        chart.update({ preservation: true });
+                        drawChars(t, qw, qx, qy, qz);
+                        appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz);
                     } else if (nextDataId == btnDataId) {
                         let t = dataView.getUint32(true);
                         let x = data[4];
@@ -165,6 +164,19 @@
           console.log(error);
         }
       }
+      function appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz) {
+        let current = csvTextArea.value;
+        let newLine = sprintf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz);
+        csvTextArea.value = sprintf("%s\n%s", current, newLine);
+      }
+      function drawChars(t, qw, qx, qy, qz) {
+        const now = Date.now();
+        chart.data.datasets[0].data.push({ x: now, y: qx });
+        chart.data.datasets[1].data.push({ x: now, y: qy });
+        chart.data.datasets[2].data.push({ x: now, y: qz });
+        chart.data.datasets[3].data.push({ x: now, y: qw });
+        chart.update({ preservation: true });
+      } 
     </script>
   </body>
 </html>
