@@ -17,32 +17,35 @@
     <button onclick="onStartButtonClick()">list serial devices</button>
     <br>
     <canvas id="myChart"></canvas>
-    <textarea id="csvTextArea" cols="40" readonly="readonly">t,qw,qx,qy,qz,ax,ay,az,gx,gy,gz</textarea >
+    <label>IMU data csv</label>
+    <button class="csvCopyButton" onclick="onCopyCsvButtonClick(event)">copy</button>
+    <br>
+    <textarea id="csvTextArea" cols="60" rows="10" readonly="readonly">t,qw,qx,qy,qz,ax,ay,az,gx,gy,gz</textarea >
 
     <script>
       const ctx = document.getElementById("myChart").getContext("2d");
       const csvTextArea = document.getElementById("csvTextArea");
-      let chart = new Chart(ctx, {
+      const chart = new Chart(ctx, {
         type: "line",
         data: {
           datasets: [
             {
-              label: 'X', fill: false,
+              label: 'quatX', fill: false,
               borderColor: 'rgb(200, 50, 50)', backgroundColor: 'rgba(200, 50, 50, 0.2)',
               data: [],
             },
             {
-              label: 'Y', fill: false,
+              label: 'quatY', fill: false,
               borderColor: 'rgb(50, 50, 200)', backgroundColor: 'rgba(50, 50, 200, 0.2)',
               data: [],
             },
             {
-              label: 'Z', fill: false,
+              label: 'quatZ', fill: false,
               borderColor: 'rgb(50, 200, 50)', backgroundColor: 'rgba(50, 200, 50, 0.2)',
               data: [],
             },
             {
-              label: 'W', fill: false,
+              label: 'quatW', fill: false,
               borderColor: 'rgb(1, 1, 1)', backgroundColor: 'rgba(1, 1, 1, 0.2)',
               data: [],
             },
@@ -129,7 +132,7 @@
                         let qx = dataView.getFloat32(offset, true); offset += 4;
                         let qy = dataView.getFloat32(offset, true); offset += 4;
                         let qz = dataView.getFloat32(offset, true); offset += 4;
-                        console.info(t, /*ax, ay, az, gx, gy, gz,*/ qw, qx, qy, qz);
+                        //console.info(t, /*ax, ay, az, gx, gy, gz,*/ qw, qx, qy, qz);
                         // graph
                         drawChars(t, qw, qx, qy, qz);
                         appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz);
@@ -163,6 +166,14 @@
           console.log("Error: Open");
           console.log(error);
         }
+      }
+      function onCopyCsvButtonClick(event) {
+        const tmpTextArea = document.createElement('textarea');
+        tmpTextArea.value = csvTextArea.value;
+        event.target.appendChild(tmpTextArea);
+        tmpTextArea.select();
+        document.execCommand('copy');
+        event.target.removeChild(tmpTextArea);
       }
       function appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz) {
         let current = csvTextArea.value;
