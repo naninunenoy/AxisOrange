@@ -175,9 +175,13 @@
         document.execCommand('copy');
         event.target.removeChild(tmpTextArea);
       }
+      const precision = 5;
       function appendCsv(t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz) {
         let current = csvTextArea.value;
-        let newLine = sprintf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", t, qw, qx, qy, qz, ax, ay, az, gx, gy, gz);
+        let newLine = sprintf("%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", t,
+         qw.toFixed(precision), qx.toFixed(precision), qy.toFixed(precision), qz.toFixed(precision), 
+         ax.toFixed(precision), ay.toFixed(precision), az.toFixed(precision), 
+         gx.toFixed(precision), gy.toFixed(precision), gz.toFixed(precision));
         csvTextArea.value = sprintf("%s\n%s", current, newLine);
       }
       function drawChars(t, qw, qx, qy, qz) {
