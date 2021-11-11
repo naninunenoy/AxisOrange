@@ -16,8 +16,8 @@ AxisOrange supports [M5Unified](https://github.com/m5stack/M5Unified) devices. l
 
  * M5Stack Gray (without MPU9250 model)
  * M5Stack Core2
- * M5Stick
  * M5StickC
+ * M5StickCPlus
 
 ## Simple viewer
 <img src="https://user-images.githubusercontent.com/15327448/141324212-97e6ac0a-0219-42c3-8227-692bb46485a2.png" width="450" />
@@ -31,25 +31,24 @@ This is AxisOrange data viewer by web serial port.
 4. AxisOrange can calculate and save gyro zero point error. push [gyro-offset install]
 5. You can copy raw output of AxisOrange as csv text. 
 
-
 # Features
 
 ## Sensor Data
 
-This sends raw value of 6DOF sensor.
+AxisOrange sends raw value of 6DOF sensor.
 
 * Acc(xyz) [G]
 * Gyro(xyz) [deg/s]
 
 ## Quaternion
 
-This calucutates quaternion by acc/gyro and sends it.
+AxisOrange calucutates quaternion by acc/gyro and sends it.
 
 * Quaternion(xyzw)
 
 ## Button
 
-This sends button A/B(/C) push/release event trigger.
+AxisOrange sends button A/B(/C) push/release event trigger.
 
 * Button A Push/Release event
 * Button B Push/Release event
