@@ -15,8 +15,12 @@
   <body>
     <h1>Axis Orange Viewer</h1>
     <button onclick="onStartButtonClick()">list serial devices</button>
-    <br>
+    <hr>
     <canvas id="myChart"></canvas>
+    <label>Press this button when the quaternion changes even though it is stationary.
+      But keep it stable during gyro-offset install</label>
+    <button onclick="onGyroOffsetInstallButtonClick()">gyro-offset install</button>
+    <hr>
     <label>IMU data csv</label>
     <button class="csvCopyButton" onclick="onCopyCsvButtonClick(event)">copy</button>
     <br>
@@ -67,6 +71,7 @@
       const headerLength = 4;
       const imuDataId = 1;
       const btnDataId = 2;
+      let writer;
       async function onStartButtonClick() {
         try {
           const port = await navigator.serial.requestPort();
@@ -77,12 +82,14 @@
           
           while (port.readable) {
             const reader = port.readable.getReader();
+            writer = port.writable.getWriter();
 
             try {
               while (true) {
                 const {value, done} = await reader.read();
                 if (done) {
                     reader.releaseLock();
+                    writer.releaseLock();
                     break;
                 }
                 // add new data
@@ -160,10 +167,27 @@
               console.log(error);
             } finally {
               reader.releaseLock();
+              writer.releaseLock();
             }
           }
         } catch (error) {
           console.log("Error: Open");
+          console.log(error);
+        }
+      }
+      async function onGyroOffsetInstallButtonClick() {
+        if (typeof writer === "undefined") {
+          return;
+        }
+        const dataBuffer = new ArrayBuffer(4);
+        const dataView = new DataView(dataBuffer);
+        // 0x8001 is command id of gyro offset install
+        dataView.setUint16(0, 0x8001, true);
+        dataView.setUint16(2, 0);
+        try {
+          await writer.write(dataBuffer)
+        } catch (error) {
+          console.log("Error: Write");
           console.log(error);
         }
       }
